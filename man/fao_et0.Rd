@@ -3,7 +3,7 @@
 \name{fao_et0}
 \alias{fao_et0}
 \title{Calcula a evapotranspiração de referência pelo método de Penman padronizado pela FAO com ou sem as correções propostas pela
-American Society of Civil Engineers (ASCE)}
+ American Society of Civil Engineers (ASCE)}
 \usage{
 fao_et0(
   temp,
@@ -33,28 +33,39 @@ fao_et0(
 
 \item{hourly}{FALSE para calcular a evapotranspiração diária (mm/dia) (valor padrão), ou TRUE para
 calcular a evapotranspiração horária (mm/h)}
+
+\item{mode}{um dos seguintes valores possíveis 'FAO', 'ASCE-ET0', 'ASCE-ETR' (ver detalhes)}
+
+\item{day}{válido somente no cálculo da evapotranspiração horária. Um vetor booleano informando para
+cada registro se é dia ou noite (TRUE para dia e FALSE para noite).}
 }
 \description{
 Calcula a evapotranspiração de referência (ET0, mm) pelo método de Penman-Monteith
  padronizado pela FAO (Allen et al., 1998) com ou sem as alterações propostas pela American Society of Civil Engineers (ASCE, 2005)
 }
 \details{
-Para fins de padronização, no cálculo para intervalos de tempo de 1 dia ou maiores, deve-se definir temp
+Para fins de padronização, no cálculo para intervalos de tempo de 1 dia ou maiores, deve-se definir \code{temp}
  como a média entre a temperatura máxima
  e a temperatura mínima do ar medidas no período de tempo em que se deseja calcular a evapotranspiração,
- e não como a média de todas as medições de temperatura no período (Allen et al., 1998).
- Caso não se disponha de medições diretas do parâmetro rn, pode-se estimar o seu
- valor por meio das funções [net_shortwave] e [net_longwave].
+ e não como a média de todas as medições de temperatura no período (Allen et al., 1998).\cr
+ Caso não se disponha de medições diretas do parâmetro \code{rn}, pode-se estimar o seu
+ valor por meio das funções \code{\link{net_shortwave}} e \code{\link{net_longwave}}.\cr
+ Para o cálculo da evapotranspiração
+ de referência, o albedo da cultura de referência deve ser fixado em 0.23 tanto para a grama quanto para a alfafa (Allen et al., 2005).
  Caso não se disponha de medições diretas do parâmetro g, Allen et al. (1998) recomendam
  atribuir o valor de 0 para cálculos de evapotranspiração diária ou 0.1 * rn durante o dia
- e 0.5 * rn durante a noite, para cálculos de evapotranspiração horária.
- O valor de es pode ser calculado por meio da função tetens_equation. Recomenda-se
- definir es como a média entre os valores retornados por tetens_equation para
+ e 0.5 * rn durante a noite, para cálculos de evapotranspiração horária.\cr
+ O valor de es pode ser calculado por meio da função \code{\link{tetens_equation}}. Recomenda-se
+ definir es como a média entre os valores retornados por \code{\link{tetens_equation}} para
  a temperatura mínima e para a temperatura máxima no período, para cálculos realizados
- no intervalo de tempo de 1 dia ou maior.
+ no intervalo de tempo de 1 dia ou maior.\cr
+ O parâmetro mode pode ser definido como 'FAO', 'ASCE-ET0' ou 'ASCE-ETR'. O valor padrão é 'ASCE-ET0'. Se definido
+ como 'FAO', o cálculo é realizado com os parâmetros definidos em Allen et al. (1998). Se definido como 'ASCE-ET0',
+ o cálculo considera os parâmetros definidos para a grama de referência conforme Allen et al. (2006). Se definido
+ como 'ASCE-ETR', os parâmetros utilizados correspondem ao da alfafa como cultura de referência.
 }
 \references{
-ALLEN, R. G.; PEREIRA, L. S.; RAES, D.; SMITH, M. FAO Irrigation and Drainage Paper no 56. FAO: Rome, 1998.
+ALLEN, R. G.; PEREIRA, L. S.; RAES, D.; SMITH, M. FAO Irrigation and Drainage Paper no 56. FAO: Rome, 1998.\cr
 ALLEN, et al.. A recommendation on standardized surface resistance for hourly calculation of reference ETo
  by the FAO56 Penman-Monteith method. Agricultural Water Management, 81, p. 1-22, 2006.
  Available from: <https://www.sciencedirect.com/science/article/abs/pii/S037837740500154X>

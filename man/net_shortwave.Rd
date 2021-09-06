@@ -15,3 +15,8 @@ net_shortwave(rs, albedo = 0.23)
 Calculates net shortwave radiation, which is the difference between
 incoming shortwave radiation and reflected shortwave radiation over a surface.
 }
+\details{
+O parâmetro albedo possui valor padrão de 0.23. Este é o albedo para a cultura
+ de referência, utilizado no cálculo da evapotranspiração de referência. Para maiores detalhes
+ veja a seção 'details' da função \code{\link{fao_et0}}.
+}
