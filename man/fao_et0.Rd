@@ -2,8 +2,7 @@
 % Please edit documentation in R/formulae.R
 \name{fao_et0}
 \alias{fao_et0}
-\title{Calcula a evapotranspiração de referência pelo método de Penman padronizado pela FAO com ou sem as correções propostas pela
- American Society of Civil Engineers (ASCE)}
+\title{Calcula a evapotranspiração de referência}
 \usage{
 fao_et0(
   temp,
@@ -52,14 +51,16 @@ Para fins de padronização, no cálculo para intervalos de tempo de 1 dia ou ma
  valor por meio das funções \code{\link{net_shortwave}} e \code{\link{net_longwave}}.\cr
  Para o cálculo da evapotranspiração
  de referência, o albedo da cultura de referência deve ser fixado em 0.23 tanto para a grama quanto para a alfafa (Allen et al., 2005).
- Caso não se disponha de medições diretas do parâmetro g, Allen et al. (1998) recomendam
- atribuir o valor de 0 para cálculos de evapotranspiração diária ou 0.1 * rn durante o dia
- e 0.5 * rn durante a noite, para cálculos de evapotranspiração horária.\cr
- O valor de es pode ser calculado por meio da função \code{\link{tetens_equation}}. Recomenda-se
+ Caso não se disponha de medições diretas do parâmetro \code{g}, Allen et al. (1998) recomendam
+ atribuir o valor de 0 para cálculos de evapotranspiração diária ou \code{0.1 * rn} durante o dia
+ e \code{0.5 * rn} durante a noite, para cálculos de evapotranspiração horária tendo como referência a grama.
+ Caso a referência adotada seja a alfafa e não haja medições diretas do fluxo de calor no solo, deve-se adotar
+ \code{0.04 * rn} durante o dia e \code{0.2 * rn} durante a noite (Allen et al., 2005)\cr
+ O valor de \code{es} pode ser calculado por meio da função \code{\link{tetens_equation}}. Recomenda-se
  definir es como a média entre os valores retornados por \code{\link{tetens_equation}} para
  a temperatura mínima e para a temperatura máxima no período, para cálculos realizados
  no intervalo de tempo de 1 dia ou maior.\cr
- O parâmetro mode pode ser definido como 'FAO', 'ASCE-ET0' ou 'ASCE-ETR'. O valor padrão é 'ASCE-ET0'. Se definido
+ O parâmetro \code{mode} pode ser definido como 'FAO', 'ASCE-ET0' ou 'ASCE-ETR'. O valor padrão é 'ASCE-ET0'. Se definido
  como 'FAO', o cálculo é realizado com os parâmetros definidos em Allen et al. (1998). Se definido como 'ASCE-ET0',
  o cálculo considera os parâmetros definidos para a grama de referência conforme Allen et al. (2006). Se definido
  como 'ASCE-ETR', os parâmetros utilizados correspondem ao da alfafa como cultura de referência.
