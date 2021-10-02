@@ -2,6 +2,7 @@
 
 S3method(ext_rad,POSIXt)
 S3method(ext_rad,default)
+S3method(hour_angle,POSIXt)
 S3method(hour_angle,default)
 S3method(inv_rel_dist_sun,Date)
 S3method(inv_rel_dist_sun,POSIXt)

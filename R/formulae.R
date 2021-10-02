@@ -114,11 +114,17 @@ hour_angle <- function(dt, lon) {
 }
 
 #' @export
-hour_angle.default <- function(dt, lon) {
+hour_angle.default <- function(dt, lon, j) {
+  sc <- equation_of_time(j)
+  ret <- (dt + lon / 15 + sc - 12) * pi / 12
+  return(ret)
+}
+
+#' @export
+hour_angle.POSIXt <- function(dt, lon) {
   dt <- lubridate::with_tz(dt, tzone = "GMT")
   t <- as.numeric(lubridate::as.duration(dt - lubridate::floor_date(dt, unit = "days"))) / 3600
-  sc <- equation_of_time(lubridate::yday(dt))
-  ret <- (t + lon / 15 + sc - 12) * pi / 12
+  ret <- hour_angle.default(t, lon, lubridate::yday(dt))
   return(ret)
 }
 
@@ -171,7 +177,7 @@ ext_rad.default <- function(t0, t1, lat, lon, j) {
   # calculates the the time between t0 and t1
   tm <- (ifelse(t0 > t1, (24 + t1 + t0), (t0 + t1)) / 2) %% 24
 
-  omega <- hour_angle(tm, lon, j = j)
+  omega <- hour_angle.default(tm, lon, j = j)
   delta <- solar_declination(j)
   phi <- deg_to_rad(lat)
   dr <- inv_rel_dist_sun(j)
@@ -196,7 +202,7 @@ ext_rad.POSIXt <- function(t0, t1, lat, lon, j = NULL) {
   t1 <- do.call(c, Map(function(dt) lubridate::with_tz(dt, 'GMT'), t1))
   tm <- do.call(c, Map(function(x, y) mean(c(x, y)), t0, t1))
 
-  ext_rad(
+  ext_rad.default(
     (as.numeric(t0) - as.numeric(lubridate::floor_date(t0, unit = "days"))) / 3600,
     (as.numeric(t1)  - as.numeric(lubridate::floor_date(t0, unit = "days"))) / 3600,
     lat, lon,
