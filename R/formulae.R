@@ -83,6 +83,70 @@ tetens_equation <- function(temp) {
   0.6108 * exp(17.27 * temp / (237.3 + temp))
 }
 
+#' @export
+latent_heat <- function(temp) {
+  l0 <- 2.501e6
+  cpcv <- 2.180e3
+  t0 <- 273.16
+  l0 - cpcv * (temp - t0)
+}
+
+#' Calculates the water vapor saturation pressure as a function of temperature.
+#' @param temp temperature in Kelvin (K).
+#' @return a vector of the same length as temp with the calculated
+#' water vapor saturation pressure in Pa for each temperature.
+#' @export
+ambaum_equation <- function(temp) {
+  l0 <- 2.501e6
+  cpcv <- 2.180e3
+  t0 <- 273.16
+  rv <- 461.52
+  lambda <- latent_heat(temp)
+  611.655 * exp(l0 / (rv * t0) - lambda / (rv * temp)) * (t0 / temp) ^ (cpcv / rv)
+}
+
+#' Calculates the slope of the equation of Tetens
+#' @param  temp temperature in Kelvin (K).
+#' @return a vector with the same length as temp with the calculated
+#' slope in Pa/K.
+#' @export
+ambaum_slope <- function(temp) {
+  lambda <- latent_heat(temp)
+  rv <- 461.52
+  es <- ambaum_equation(temp)
+  lambda * es / (rv * temp * temp)
+}
+
+#' Calculates the psychrometric constant
+#' @param patm atmospheric pressure (Pa).
+#' @return Psychrometric constant (Pa / K)
+#' @export
+psy_const <- function(patm) {
+  6.65e-4 * patm
+}
+
+#' Estimates wind speed at height z2 based on wind speed measued at
+#' height z1, given the height of the zero plane displacement and the roughness
+#' length of the surface.
+#'
+#' For a standardized FAO Peman Monteith ET0 surface
+#' you can use the default values for d and z0. If the wind speed is measured
+#' at a standard weather station, which measures wind speed
+#' at a 10m height, you can use the default value for z1.
+#' @param u1 Wind speed [m/s] measured at height z1.
+#' @param z2 Height z2 [m].
+#' @param z1 Height z1 [m]. The default is 10.
+#' @param d Zero plane displacement height. If not set, a default value = 0.08 will be set, which
+#' is the zero plane displacement height estimated for a 0.12m height uniform crop.
+#' @param z0 Roughness length. If not set, a default value of 0.01476 will be set, which
+#' corresponds to the roughness length of the standardized FAO ET0 Penman-Monteith
+#' equation.
+#' @return Wind speed at height z2.
+#' @export
+log_wind_profile <- function(u1, z2 = 2, z1 = 10, d = 0.084, z0 = 0.01476) {
+  u1 * log((z2 - d) / z0) / log((z1 - d) / z0)
+}
+
 #' Calculates the slope of the equation of Tetens
 #' @param  temp temperature in Celsius (ºC). Rasters are also supported.
 #' @return a vector of the same length as temp with the calculated
@@ -220,8 +284,9 @@ ext_rad_day <- function(j, lat) {
   delta <- solar_declination(j)
   phi <- deg_to_rad(lat)
   omega_s <- sunset_hour_angle(j, lat)
-
-  118.08 * dr * (omega_s * sin(phi) * sin(delta) + cos(phi) * cos(delta) * sin(omega_s)) / pi
+  gsc <- 1.360e3
+  secs <- 8.64e4
+  secs * gsc * dr * (omega_s * sin(phi) * sin(delta) + cos(phi) * cos(delta) * sin(omega_s)) / pi
 }
 
 #' Calcula a duração do dia
@@ -263,10 +328,10 @@ solar_zenith_angle <- function(dt, lat, lon){
 #' @references
 #' ALLEN, R. G.; PEREIRA, L. S.; RAES, D.; SMITH, M. FAO Irrigation and Drainage Paper no 56. FAO: Rome, 1998.
 #' @export
-net_longwave <- function(tmax, tmin, e, rs, rs0, hourly = FALSE) {
+net_longwave <- function(tmax, tmin, e, rs, rs0) {
   tmaxk <- celsius_to_kelvin(tmax)
   tmink <- celsius_to_kelvin(tmin)
-  sigma <- if(hourly) 2.043e-10 else 4.903e-9
+  sigma <- 4.903e-9
   radRatio <- ifelse(rs0 == 0, 0, pmin(rs / rs0, 1))
   ret <- -sigma * (tmaxk ^ 4 + tmink ^ 4) / 2
   ret <- ret * (0.34 - 0.14 * sqrt(e))

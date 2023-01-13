@@ -1,0 +1,27 @@
+Agmet is a collection of functions to calculate solar position, reference evapotranspiration, and soil water balance.
+
+The following document describes the procedures to install Agmet directly from GitHub as well as some of the functionalities embedded in this package.
+
+## Package's installation
+
+To install Agmet in your computer with R already installed do the following
+
+```{r}
+install.packages('devtools')
+devtools::install_github('https://github.com/jvitorpinto/agmet.git')
+```
+
+## Using Agmet
+
+```{r include=FALSE}
+require(agmet)
+```
+
+The function `stefan_boltzmann_law` calculates the amount of radiation emitted by a black body as a function of its absolute temperature.
+
+```{r}
+temp <- seq(273.15, 473.15, by = 0.1)
+y <- stefan_boltzmann_law(temp)
+
+plot(temp, y, type = 'l', xlab = expression(italic(T) ~ ('K')), ylab = expression('Black body emittance' ~ (W ~ m^-2)))
+```

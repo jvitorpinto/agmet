@@ -4,7 +4,7 @@
 \alias{net_longwave}
 \title{Calcula o saldo de radiação de ondas longas}
 \usage{
-net_longwave(tmax, tmin, e, rs, rs0, hourly = FALSE)
+net_longwave(tmax, tmin, e, rs, rs0)
 }
 \arguments{
 \item{tmax}{Temperatura máxima do ar medida dentro do intervalo de tempo do cálculo [ºC]}
