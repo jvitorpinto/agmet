@@ -5,18 +5,18 @@
 #' @param dt date and time (timezone aware).
 #' @export
 metric_equation_of_time <- function(dt) {
-  dt <- with_tz(dt, 'UTC')
-  b <- 2 * pi * (yday(dt)-81) / 364
+  dt <- lubridate::with_tz(dt, 'UTC')
+  b <- 2 * pi * (lubridate::yday(dt)-81) / 364
   0.1645*sin(2*b) - 0.1255*cos(b) - 0.025*sin(b)
 }
 
 metric_solar_declination <- function(dt) {
-  dt <- with_tz(dt, 'UTC')
-  0.409 * sin(2 * pi * yday(with_tz(dt, 'UTC')) / 365 - 1.39)
+  dt <- lubridate::with_tz(dt, 'UTC')
+  0.409 * sin(2 * pi * lubridate::yday(dt) / 365 - 1.39)
 }
 
 metric_relative_distance_earth_sun <- function(dt) {
-  1 + 0.033 * cos(2 * pi * yday(with_tz(dt, 'UTC')) / 365)
+  1 + 0.033 * cos(2 * pi * lubridate::yday(lubridate::with_tz(dt, 'UTC')) / 365)
 }
 
 metric_hour_angle <- function(lon, dt) {
