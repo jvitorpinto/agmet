@@ -7,7 +7,7 @@
 #'  calculates black body radiant emittance.
 #' @export
 stefan_boltzmann_law <- function(temp, epsilon = 1.) {
-  stopifnot(epsilon >= 0 & epsilon <= 1, temp >= 0)
+  #stopifnot(epsilon >= 0 & epsilon <= 1, temp >= 0) # comment to accept raster
   epsilon * 5.670374419184429453e-8 * temp ** 4
 }
 
