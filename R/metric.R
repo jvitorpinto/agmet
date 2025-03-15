@@ -497,6 +497,32 @@ metric <- function(rast, terrain, dt, weather_station = NULL) {
   model
 }
 
+
+# testar se função funciona com raster
+fun_psy200 <- function(l) {
+  x <- ((1 - 16*200/l)^0.25)
+  ifelse(l==0,0,ifelse(l>0,-5*2/l,2*log((1+x)/2)+log((1+x*x)/2)-2*atan(x)+0.5*pi))
+}
+
+# mesma coisa
+fun_psy <- function(z, l) {
+  x<-((1-16*z/l)^0.25)
+  ifelse(l==0,0,ifelse(l>0,-5*z/l,2*log((1+x*x)/2)))
+}
+
+# mesma coisa
+fun_psy200_r <- function(l) {
+  x <- ((1 - 16*200/l)^0.25)
+  terra::ifel(l==0,0,terra::ifel(l>0,-5*2/l,2*log((1+x)/2)+log((1+x*x)/2)-2*atan(x)+0.5*pi))
+}
+
+# mesma coisa
+fun_psy_r <- function(z, l) {
+  x<-((1-16*z/l)^0.25)
+  terra::ifel(l==0,0,terra::ifel(l>0,-5*z/l,2*log((1+x*x)/2)))
+}
+
+
 #' @export
 metric_run <- function(model, anchor_points, weather_data) {
   # Calculates leaf area index
@@ -504,8 +530,6 @@ metric_run <- function(model, anchor_points, weather_data) {
   names(lai) <- 'LEAF_AREA_INDEX'
 
   epsilon_0 <- metric_broadband_surface_emissivity(lai)
-
-  print(epsilon_0)
 
   lw_out <- stefan_boltzmann_law(model$rast$TEMP, epsilon_0)
 
@@ -539,6 +563,8 @@ metric_run <- function(model, anchor_points, weather_data) {
   g <- rn * (model$rast$TEMP - 273.15) * (0.0038 + 0.0074 * model$rast$ALBEDO) * (1 - 0.98 * model$rast$NDVI ^ 4)
   names(g) <- c('SOIL_HEAT_FLUX')
 
+  # ap (anchor_points) é um objeto SpatVector contendo todos os dados do raster
+  # do modelo para o local dos pontos de ancoragem
   ap <- terra::extract(c(model$rast, lai, rn, g), anchor_points, bind = T)
   ap$MOMENTUM_ROUGHNESS_LENGTH <- 0.018 * ap$LEAF_AREA_INDEX # mudar aqui para calcular um raster
 
@@ -560,32 +586,10 @@ metric_run <- function(model, anchor_points, weather_data) {
   # aerodynamic resistance (eq 28)
   ap$AERODYNAMIC_RESISTANCE <- log(z2/z1) / (0.41*ap$FRICTION_VELOCITY) # mudar para calcular um raster
 
+  # DT é o gradiente de temperatura
   ap$DT = 0
-  old_dt <- ap$DT + 1
+  old_dt <- ap$DT + 1 # aqui se define um valor para old_dt diferente de dt para não comprometer o loop a seguir
   ap$LE <- ap$value
-
-  # testar se função funciona com raster
-  fun_psy200 <- function(l) {
-    x <- ((1 - 16*200/l)^0.25)
-    ifelse(l==0,0,ifelse(l>0,-5*2/l,2*log((1+x)/2)+log((1+x*x)/2)-2*atan(x)+0.5*pi))
-  }
-
-  # mesma coisa
-  fun_psy <- function(z, l) {
-    x<-((1-16*z/l)^0.25)
-    ifelse(l==0,0,ifelse(l>0,-5*z/l,2*log((1+x*x)/2)))
-  }
-
-  fun_psy200_r <- function(l) {
-    x <- ((1 - 16*200/l)^0.25)
-    terra::ifel(l==0,0,terra::ifel(l>0,-5*2/l,2*log((1+x)/2)+log((1+x*x)/2)-2*atan(x)+0.5*pi))
-  }
-
-  # mesma coisa
-  fun_psy_r <- function(z, l) {
-    x<-((1-16*z/l)^0.25)
-    terra::ifel(l==0,0,terra::ifel(l>0,-5*z/l,2*log((1+x*x)/2)))
-  }
 
   n <- 0
   while (max(abs(ap$DT - old_dt)) > 1e-6 & n < 100) {
@@ -612,5 +616,56 @@ metric_run <- function(model, anchor_points, weather_data) {
 
   ap$TEMP_DATUM <- ap$TEMP - ap$ALTITUDE * 6.5/1000 # lapse-rate de 6.5°C/1000 m
   m <- lm(DT ~ TEMP_DATUM, data = ap)
-  m
+
+  #===============================================================================
+  # Após o loop
+  #===============================================================================
+
+  temp_datum <- model$rast$TEMP - model$rast$ALTITUDE * 6.5 / 1000
+
+  a <- coef(m)[1]
+  b <- coef(m)[2]
+
+  # dt for the whole image
+  dt <- a + b * temp_datum
+
+  # air density
+  rho <- atmospheric_pressure(model$rast$ALTITUDE) / (1.01 * (model$rast$TEMP - dt) * 287)
+
+  roughness_length <- 0.018 * lai
+
+  #===============================
+  # new loop
+  #===============================
+  uf <- 0.41 * u200 / log(200 / roughness_length)
+  r_ah <- log(z2 / z1) / (uf * 0.41)
+
+  old_h <- 0
+  #===================================
+  # starts here
+  #==================================
+  for (i in 1:10) {
+    h <- rho * cp * dt / r_ah
+    l <- -rho * cp * (uf ^ 3) * model$rast$TEMP / (0.41 * 9.80665 * h)
+    psy_200 <- fun_psy200_r(l)
+    psy_z2 <- fun_psy_r(z2, l)
+    psy_z1 <- fun_psy_r(z1, l)
+
+    uf <- u200 * 0.41 / (log(200 / roughness_length) - psy_200)
+    r_ah <- (log(z2 / z1) - psy_z2 + psy_z1) / (0.41 * uf)
+    old_h <- h
+  }
+
+  #------------------------------------
+
+  le <- rn - g - h
+
+  #-------------------------------------------------------------------------------
+
+  model$rast$NET_RADIATION <- rn
+  model$rast$SOIL_HEAT_FLUX <- g
+  model$rast$SENSIBLE_HEAT_FLUX <- h
+  model$rast$LATENT_HEAT_FLUX <- le
+
+  model
 }

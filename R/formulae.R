@@ -7,7 +7,6 @@
 #'  calculates black body radiant emittance.
 #' @export
 stefan_boltzmann_law <- function(temp, epsilon = 1.) {
-  #stopifnot(epsilon >= 0 & epsilon <= 1, temp >= 0) # comment to accept raster
   epsilon * 5.670374419184429453e-8 * temp ** 4
 }
 
@@ -158,7 +157,6 @@ tetens_slope <- function(temp) {
 
 #' @export
 sunset_hour_angle <- function(j, lat) {
-  stopifnot(lat >= -90, lat <= 90)
   delta <- solar_declination(j)
   phi <- deg_to_rad(lat)
   x <- limit_range(-tan(phi) * tan(delta), -1, 1)
@@ -348,7 +346,6 @@ net_longwave <- function(tmax, tmin, e, rs, rs0) {
 #'  veja a seção 'details' da função \code{\link{fao_et0}}.
 #' @export
 net_shortwave <- function(rs, albedo = 0.23) {
-  stopifnot(albedo >= 0 & albedo <= 1)
   (1 - albedo) * rs
 }
 
@@ -398,7 +395,6 @@ fao_et0 <- function(temp, rn, g, gamma, u2, es, e, hourly = FALSE, mode = 'ASCE-
   delta <- tetens_slope(temp)
 
   if (hourly) {
-    stopifnot(!is.na(day))
     # for hourly calculations
     cn <- switch(mode,
                  'FAO' = 37,
