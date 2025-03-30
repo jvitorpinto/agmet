@@ -1,3 +1,7 @@
+---
+output: github_document
+---
+
 Agmet is a collection of functions to calculate solar position, reference evapotranspiration, and soil water balance.
 
 The following document describes the procedures to install Agmet directly from GitHub as well as some of the functionalities embedded in this package.
