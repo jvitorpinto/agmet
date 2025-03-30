@@ -67,10 +67,6 @@ metric_horizontal_incidence_angle <- function(lat, lon, datetime) {
   acos(res)
 }
 
-metric_zenith_angle <- function(rast, datetime) {
-
-}
-
 #' @description
 #' Calculates the solar incidence angle over a sloped surface.
 #'
